@@ -1,0 +1,109 @@
+{
+    "target_audience": {
+        "demographics": {
+            "age_range": ["25-34", "35-44"],
+            "interests": ["technology", "entrepreneurship", "digital marketing"],
+            "occupation": ["entrepreneurs", "business owners", "professionals"],
+            "pain_points": ["time management", "business growth", "digital transformation"]
+        },
+        "behavior": {
+            "social_media_usage": ["daily active", "business-focused"],
+            "content_preferences": ["how-to guides", "industry insights", "success stories"],
+            "engagement_patterns": ["morning readers", "lunch break browsers"]
+        }
+    },
+    "content_strategy": {
+        "tone_of_voice": {
+            "primary": "professional",
+            "secondary": "friendly",
+            "avoid": ["overly casual", "controversial"]
+        },
+        "content_types": {
+            "tips_and_tricks": {
+                "frequency": "40%",
+                "best_times": ["09:00", "14:00"],
+                "format": "How to {action} for {benefit}"
+            },
+            "industry_insights": {
+                "frequency": "30%",
+                "best_times": ["10:00", "15:00"],
+                "format": "Latest trends in {industry}: {insight}"
+            },
+            "success_stories": {
+                "frequency": "20%",
+                "best_times": ["11:00", "16:00"],
+                "format": "How {company/person} achieved {result} through {method}"
+            },
+            "engagement_questions": {
+                "frequency": "10%",
+                "best_times": ["13:00", "17:00"],
+                "format": "What's your take on {topic}? Share your experience!"
+            }
+        },
+        "hashtag_strategy": {
+            "primary_tags": ["#BusinessGrowth", "#DigitalTransformation", "#Entrepreneurship"],
+            "secondary_tags": ["#Success", "#Innovation", "#Leadership"],
+            "trending_tags": "dynamic",
+            "max_tags_per_post": 3
+        }
+    },
+    "content_calendar": {
+        "themes": {
+            "monday": ["productivity", "weekly planning"],
+            "tuesday": ["technology", "innovation"],
+            "wednesday": ["business growth", "strategy"],
+            "thursday": ["leadership", "team management"],
+            "friday": ["success stories", "weekly wins"]
+        },
+        "post_frequency": {
+            "twitter": 3,
+            "linkedin": 2,
+            "instagram": 1
+        }
+    },
+    "engagement_rules": {
+        "response_time": {
+            "comments": "within 2 hours",
+            "messages": "within 4 hours"
+        },
+        "interaction_types": {
+            "like_relevant_posts": true,
+            "retweet_industry_news": true,
+            "reply_to_mentions": true
+        }
+    },
+    "content_guidelines": {
+        "post_length": {
+            "twitter": {
+                "min": 80,
+                "max": 280,
+                "optimal": 240
+            },
+            "linkedin": {
+                "min": 100,
+                "max": 1300,
+                "optimal": 1000
+            }
+        },
+        "media_usage": {
+            "image_ratio": "60%",
+            "video_ratio": "30%",
+            "text_only": "10%"
+        },
+        "call_to_action": {
+            "types": ["learn more", "share your thoughts", "follow for more"],
+            "frequency": "70% of posts"
+        }
+    },
+    "performance_metrics": {
+        "key_indicators": {
+            "engagement_rate": "minimum 2%",
+            "click_through_rate": "minimum 1%",
+            "follower_growth": "5% monthly"
+        },
+        "adjustment_triggers": {
+            "low_engagement": "below 1% for 3 posts",
+            "high_engagement": "above 5% for 3 posts"
+        }
+    }
+}

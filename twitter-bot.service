@@ -1,0 +1,15 @@
+[Unit]
+Description=EON Protocol Twitter Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/Users/lewis_1/source code/AIAgent
+Environment=PYTHONPATH=/Users/lewis_1/source code/AIAgent
+ExecStart=/usr/local/bin/python3 posting_system.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

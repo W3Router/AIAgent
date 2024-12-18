@@ -1,0 +1,33 @@
+steps:
+# Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/social-media-automation', '.']
+
+# Push the container image to Container Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/social-media-automation']
+
+# Deploy container image to Cloud Run
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - 'compute'
+  - 'instances'
+  - 'update-container'
+  - 'social-media-automation'
+  - '--container-image'
+  - 'gcr.io/$PROJECT_ID/social-media-automation'
+  - '--zone'
+  - 'asia-east1-a'
+
+# Apply database migrations if needed
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    gcloud compute ssh social-media-automation --zone=asia-east1-a --command="cd /app && docker-compose run --rm social_media_automation python migrate.py"
+
+images:
+- 'gcr.io/$PROJECT_ID/social-media-automation'
+
+timeout: '1800s'

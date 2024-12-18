@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .content-box {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+        }
+        .approve {
+            background-color: #28a745;
+        }
+        .reject {
+            background-color: #dc3545;
+        }
+        .edit {
+            background-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h2>社交媒体内容审核</h2>
+    <div class="content-box">
+        <h3>待发布内容 #{{content_id}}</h3>
+        <p><strong>平台：</strong> {{platform}}</p>
+        <p><strong>计划发布时间：</strong> {{scheduled_time}}</p>
+        <p><strong>内容：</strong></p>
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+            {{content}}
+        </div>
+        <div style="margin-top: 20px;">
+            <a href="{{approve_url}}" class="button approve">批准发布</a>
+            <a href="{{reject_url}}" class="button reject">拒绝发布</a>
+            <a href="{{edit_url}}" class="button edit">编辑内容</a>
+        </div>
+    </div>
+    <p style="color: #666; font-size: 12px;">
+        这是自动生成的审核邮件，请勿直接回复。如需修改内容，请点击"编辑内容"按钮。
+    </p>
+</body>
+</html>

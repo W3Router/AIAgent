@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .content-box {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+        }
+        .approve {
+            background-color: #28a745;
+        }
+        .reject {
+            background-color: #dc3545;
+        }
+        .edit {
+            background-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h2>Social Media Content Review</h2>
+    <div class="content-box">
+        <h3>Content for Review #{{content_id}}</h3>
+        <p><strong>Platform:</strong> {{platform}}</p>
+        <p><strong>Scheduled Time:</strong> {{scheduled_time}}</p>
+        <p><strong>Content:</strong></p>
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+            {{content}}
+        </div>
+        <div style="margin-top: 20px;">
+            <a href="{{approve_url}}" class="button approve">Approve</a>
+            <a href="{{reject_url}}" class="button reject">Reject</a>
+            <a href="{{edit_url}}" class="button edit">Edit</a>
+        </div>
+    </div>
+    <p style="color: #666; font-size: 12px;">
+        This is an automated review email. Please do not reply directly. Use the buttons above to take action.
+    </p>
+</body>
+</html>

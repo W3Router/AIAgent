@@ -1,0 +1,703 @@
+{
+    "target_audience": {
+        "demographics": {
+            "age_range": ["25-34", "35-44", "45-54"],
+            "interests": ["technology", "entrepreneurship", "digital marketing", "AI/ML", "innovation"],
+            "occupation": ["entrepreneurs", "business owners", "professionals", "developers", "product managers"],
+            "pain_points": ["time management", "business growth", "digital transformation", "tech adoption", "innovation"]
+        },
+        "behavior": {
+            "social_media_usage": ["daily active", "business-focused", "tech-savvy"],
+            "content_preferences": ["how-to guides", "industry insights", "success stories", "technical deep dives", "market analysis"],
+            "engagement_patterns": ["morning readers", "lunch break browsers", "evening engagement"]
+        }
+    },
+    "content_strategy": {
+        "tone_of_voice": {
+            "primary": "professional",
+            "secondary": ["friendly", "authoritative", "innovative"],
+            "avoid": ["overly casual", "controversial", "negative", "promotional"],
+            "style_guide": {
+                "use_emojis": "sparingly",
+                "technical_terms": "explain when needed",
+                "abbreviations": ["AI", "ML", "API", "SaaS", "ROI"]
+            }
+        },
+        "content_types": {
+            "tips_and_tricks": {
+                "frequency": "25%",
+                "best_times": ["09:00", "14:00", "16:00"],
+                "format": "How to {action} for {benefit}",
+                "variations": [
+                    "Quick Tip: {tip} for {benefit}",
+                    "Pro Tip: Boost your {area} by {action}",
+                    "{number} Ways to {action} for Better {outcome}"
+                ]
+            },
+            "industry_insights": {
+                "frequency": "25%",
+                "best_times": ["10:00", "15:00", "11:30"],
+                "format": "Latest trends in {industry}: {insight}",
+                "variations": [
+                    "Breaking: {industry} is evolving - Here's what you need to know",
+                    "The Future of {industry}: {prediction}",
+                    "Industry Analysis: {topic} in {year}"
+                ]
+            },
+            "news_commentary": {
+                "frequency": "30%",
+                "best_times": ["08:00", "12:00", "16:00", "17:30"],
+                "format": "Breaking: {news_headline} via @{source_handle}. Our take: {insight}",
+                "requirements": {
+                    "max_news_age_days": 3,
+                    "must_include_twitter_handle": true,
+                    "relevance_score": "minimum 0.7",
+                    "verify_sources": true
+                },
+                "variations": [
+                    "🚨 {news_headline} - Here's why it matters...",
+                    "Just In: {news_headline} - Our analysis:",
+                    "Big News in {industry}: {headline} - What it means for you:"
+                ]
+            },
+            "engagement_questions": {
+                "frequency": "20%",
+                "best_times": ["13:00", "17:00", "19:00"],
+                "format": "What's your take on {topic}? Share your experience! cc @{industry_expert}",
+                "variations": [
+                    "Poll: How do you handle {challenge}?",
+                    "Discussion: What's your approach to {topic}?",
+                    "Quick Question: {question} 🤔"
+                ]
+            },
+            "game_theory_analysis": {
+                "frequency": "20%",
+                "best_times": ["10:00", "15:00", "20:00"],
+                "format": "Game Theory Analysis: {topic} - Implications for {asset}",
+                "requirements": {
+                    "min_length": 280,
+                    "must_include": ["hypothesis", "analysis", "conclusion"],
+                    "supporting_data": true
+                },
+                "variations": [
+                    "Game Theory Thread: How {event} affects {ecosystem}",
+                    "Strategic Analysis: {topic} in the context of {market}",
+                    "Incentive Analysis: {mechanism} and its effects on {participants}"
+                ]
+            },
+            "macro_analysis": {
+                "frequency": "25%",
+                "best_times": ["08:00", "14:00", "21:00"],
+                "format": "Macro Update: {event} and its impact on {market}",
+                "requirements": {
+                    "data_sources": true,
+                    "chart_analysis": true,
+                    "correlation_study": true
+                }
+            },
+            "ai_crypto_analysis": {
+                "frequency": "25%",
+                "best_times": ["09:00", "15:00", "21:00"],
+                "format": "AI x Crypto Analysis: {topic} - Impact on {sector}",
+                "requirements": {
+                    "technical_depth": true,
+                    "market_analysis": true,
+                    "future_implications": true
+                },
+                "variations": [
+                    "AI Integration: How {technology} changes {crypto_sector}",
+                    "AI Trading Update: {strategy} performance in {market_condition}",
+                    "AI Infrastructure: Building {component} for {use_case}"
+                ]
+            }
+        },
+        "twitter_handles": {
+            "news_sources": {
+                "crypto_news": [
+                    "@CoinDesk",
+                    "@Cointelegraph",
+                    "@TheBlock__",
+                    "@BitcoinMagazine",
+                    "@DecryptMedia",
+                    "@CryptoSlate",
+                    "@cryptonews",
+                    "@WuBlockchain"
+                ],
+                "crypto_data": [
+                    "@glassnode",
+                    "@santimentfeed",
+                    "@MessariCrypto",
+                    "@nansen_ai",
+                    "@DuneAnalytics",
+                    "@coinmetrics",
+                    "@CryptoQuant_com"
+                ],
+                "crypto_exchanges": [
+                    "@binance",
+                    "@coinbase",
+                    "@krakenfx",
+                    "@okx",
+                    "@bybit_official",
+                    "@cryptocom"
+                ]
+            },
+            "industry_experts": {
+                "top_influencers": [
+                    "@elonmusk",
+                    "@cz_binance",
+                    "@VitalikButerin",
+                    "@SBF_FTX",
+                    "@tyler",
+                    "@cameron",
+                    "@michael_saylor",
+                    "@APompliano",
+                    "@RaoulGMI",
+                    "@CryptoHayes",
+                    "@novogratz",
+                    "@CryptoCobain",
+                    "@inversebrah",
+                    "@cobie",
+                    "@DegenSpartan",
+                    "@zhusu",
+                    "@0xMaki",
+                    "@Pentosh1",
+                    "@IamNomad",
+                    "@AltcoinPsycho",
+                    "@loomdart",
+                    "@SmallCapScience",
+                    "@CryptoKaleo",
+                    "@crypto_birb",
+                    "@cryptoSqueeze",
+                    "@nebraskangooner",
+                    "@CryptoGodJohn",
+                    "@Trader_XO",
+                    "@HsakaTrades",
+                    "@CryptoCapo_",
+                    "@TheCryptoDog",
+                    "@CryptoCred",
+                    "@DonAlt",
+                    "@CryptoMessiah",
+                    "@cryptowhale",
+                    "@TheCryptoLark",
+                    "@MMCrypto",
+                    "@IvanOnTech",
+                    "@aantonop",
+                    "@DocumentingBTC",
+                    "@WuBlockchain",
+                    "@DylanLeClair_",
+                    "@ercwl",
+                    "@BitcoinBroski",
+                    "@CryptoTony__",
+                    "@WhalePanda",
+                    "@CryptoHustle",
+                    "@CryptoGainz1",
+                    "@cryptowzrd"
+                ],
+                "game_theorists": [
+                    "@nntaleb", 
+                    "@naval",
+                    "@balajis",
+                    "@punk6529",
+                    "@twobitidiot",
+                    "@AriDavidPaul",
+                    "@RyanSAdams",
+                    "@CryptoInsider23",
+                    "@Rewkang",
+                    "@0x_Beans",
+                    "@CroissantEth",
+                    "@Tetranode",
+                    "@SmallCapScience",
+                    "@FatManTerra",
+                    "@0xHamz",
+                    "@0xSisyphus",
+                    "@0xGodking",
+                    "@DeFi_Dad",
+                    "@DefiIgnas",
+                    "@DCFGod"
+                ],
+                "macro_analysts": [
+                    "@LynAldenContact",
+                    "@RaoulGMI",
+                    "@MacroScope17",
+                    "@SquishChaos",
+                    "@WClementeIII",
+                    "@woonomic",
+                    "@therationalroot",
+                    "@kenoshaking",
+                    "@BitcoinEcon",
+                    "@GameofTrades_",
+                    "@CredibleCrypto",
+                    "@CryptoHornHairs",
+                    "@MustStopMurad",
+                    "@CryptoCredo",
+                    "@BTC_JackSparrow"
+                ],
+                "alpha_hunters": [
+                    "@CryptoKaleo",
+                    "@inversebrah",
+                    "@DegenSpartan",
+                    "@loomdart",
+                    "@cobie",
+                    "@0xMaki",
+                    "@Pentosh1",
+                    "@IamNomad",
+                    "@CryptoGainz1",
+                    "@HsakaTrades",
+                    "@CryptoCred",
+                    "@DonAlt",
+                    "@CryptoMessiah",
+                    "@SmallCapScience",
+                    "@AltcoinPsycho"
+                ],
+                "ai_crypto_experts": [
+                    "@mikeyanderson",
+                    "@6079ai",
+                    "@megaeth_labs",
+                    "@twilightlayer",
+                    "@mindnetworks",
+                    "@Aixblock",
+                    "@grass",
+                    "@Lucanetz"
+                ],
+                "crypto_analysts": [
+                    "@Autismcapital",
+                    "@Sama",
+                    "@Doveywan",
+                    "@Taikimaeda2",
+                    "@binance",
+                    "@coinbureau",
+                    "@woonomic",
+                    "@WClementeIII",
+                    "@cryptoquant_kim",
+                    "@ki_young_ju",
+                    "@lawmaster",
+                    "@MessariCrypto"
+                ]
+            },
+            "content_focus": {
+                "ai_crypto": {
+                    "topics": [
+                        "AI x Crypto",
+                        "AI Trading",
+                        "Machine Learning in Crypto",
+                        "Neural Networks",
+                        "AI Infrastructure",
+                        "Blockchain AI Integration"
+                    ],
+                    "key_projects": [
+                        "Layer 2 AI",
+                        "AI Oracles",
+                        "Decentralized AI",
+                        "AI NFTs",
+                        "AI Governance"
+                    ]
+                }
+            },
+            "ranking_criteria": {
+                "min_followers": 100000,
+                "engagement_rate": "minimum 3%",
+                "relevance_keywords": [
+                    "crypto", "bitcoin", "ethereum", "defi", "web3", "nft",
+                    "game theory", "macro", "trading", "alpha"
+                ],
+                "content_quality": {
+                    "original_analysis": true,
+                    "technical_depth": true,
+                    "market_insight": true,
+                    "historical_accuracy": true
+                },
+                "blacklist_keywords": ["scam", "pump", "moon", "fud", "financial advice"],
+                "update_frequency": "weekly"
+            }
+        },
+        "hashtag_strategy": {
+            "primary_tags": {
+                "crypto_general": [
+                    "#Bitcoin",
+                    "#Ethereum",
+                    "#Crypto",
+                    "#Blockchain",
+                    "#Web3"
+                ],
+                "defi": [
+                    "#DeFi",
+                    "#YieldFarming",
+                    "#DeFiSummer",
+                    "#DEX",
+                    "#SmartContracts"
+                ],
+                "nft": [
+                    "#NFT",
+                    "#NFTCommunity",
+                    "#NFTCollection",
+                    "#NFTArt",
+                    "#NFTProject"
+                ],
+                "trading": [
+                    "#CryptoTrading",
+                    "#Altseason",
+                    "#TradingView",
+                    "#CryptoMarkets",
+                    "#BitcoinTrading"
+                ],
+                "game_theory": [
+                    "#GameTheory",
+                    "#CryptoGame",
+                    "#IncentiveDesign",
+                    "#TokenEconomics",
+                    "#MechanismDesign"
+                ],
+                "macro": [
+                    "#CryptoMacro",
+                    "#GlobalMacro",
+                    "#MarketCycles",
+                    "#MacroAnalysis",
+                    "#TradingPsychology"
+                ],
+                "ai_crypto_tags": [
+                    "#AIxCrypto",
+                    "#AITrading",
+                    "#CryptoAI",
+                    "#AIBlockchain",
+                    "#MachineLearning",
+                    "#AIInfrastructure",
+                    "#DecentralizedAI",
+                    "#AIOracless",
+                    "#AIGovernance",
+                    "#NeuralNetworks"
+                ]
+            },
+            "secondary_tags": {
+                "technology": [
+                    "#Layer2",
+                    "#ZKProof",
+                    "#Solidity",
+                    "#RollUp",
+                    "#ProofOfStake"
+                ],
+                "ecosystem": [
+                    "#DApp",
+                    "#DAO",
+                    "#GameFi",
+                    "#SocialFi",
+                    "#MetaFi"
+                ],
+                "market": [
+                    "#BullMarket",
+                    "#BearMarket",
+                    "#HODL",
+                    "#ToTheMoon",
+                    "#CryptoNews"
+                ],
+                "community": [
+                    "#CryptoTwitter",
+                    "#CryptoCommunity",
+                    "#Bitcoiner",
+                    "#Etherean",
+                    "#Web3Community"
+                ]
+            },
+            "trending_tags": {
+                "update_frequency": "hourly",
+                "min_volume": 5000,
+                "relevance_threshold": 0.7,
+                "blacklist": ["scam", "rugpull", "ponzi", "moon"]
+            },
+            "max_tags_per_post": 3,
+            "usage_rules": {
+                "market_updates": ["crypto_general", "trading"],
+                "technical_analysis": ["trading", "market"],
+                "development_updates": ["technology", "ecosystem"],
+                "community_engagement": ["community", "ecosystem"],
+                "game_theory_analysis": ["game_theory"],
+                "macro_analysis": ["macro"],
+                "ai_crypto_analysis": ["ai_crypto_tags"]
+            },
+            "tag_rotation": {
+                "enabled": true,
+                "frequency": "daily",
+                "performance_based": true
+            }
+        }
+    },
+    "posting_schedule": {
+        "weekday": {
+            "frequency": "twice daily",
+            "times": ["10:00", "22:00"]
+        },
+        "weekend": {
+            "frequency": "twice daily",
+            "times": ["10:00", "22:00"]
+        },
+        "content_distribution": {
+            "market_updates": {
+                "weekday": "30%",
+                "weekend": "30%",
+                "best_times": ["08:00", "14:00", "20:00"]
+            },
+            "technical_analysis": {
+                "weekday": "20%",
+                "weekend": "20%",
+                "best_times": ["09:00", "15:00", "21:00"]
+            },
+            "ai_crypto_analysis": {
+                "weekday": "20%",
+                "weekend": "20%",
+                "best_times": ["10:00", "16:00", "22:00"]
+            },
+            "community_engagement": {
+                "weekday": "15%",
+                "weekend": "15%",
+                "best_times": ["11:00", "17:00", "23:00"]
+            },
+            "educational_content": {
+                "weekday": "15%",
+                "weekend": "15%",
+                "best_times": ["12:00", "18:00", "22:00"]
+            }
+        },
+        "optimization_rules": {
+            "engagement_based": {
+                "monitor_metrics": ["likes", "comments", "retweets", "clicks"],
+                "adjust_timing": true,
+                "minimum_gap": "2 hours",
+                "maximum_gap": "4 hours"
+            },
+            "market_based": {
+                "increase_frequency": [
+                    "high volatility",
+                    "major news events",
+                    "significant price movements"
+                ],
+                "real_time_events": {
+                    "breaking_news": "immediate post",
+                    "market_alerts": "within 15 minutes",
+                    "trend_changes": "within 30 minutes"
+                }
+            },
+            "quality_control": {
+                "minimum_preparation": "30 minutes",
+                "review_required": ["market calls", "price predictions", "trading advice"],
+                "fact_checking": true,
+                "source_verification": true
+            }
+        }
+    },
+    "automation_rules": {
+        "content_generation": {
+            "frequency": {
+                "weekday": "every 3 hours",
+                "weekend": "every 3 hours"
+            },
+            "quality_checks": {
+                "duplicate_detection": true,
+                "sentiment_analysis": true,
+                "relevance_score": "minimum 0.8",
+                "engagement_prediction": true
+            },
+            "optimization": {
+                "a_b_testing": true,
+                "performance_learning": true,
+                "content_recycling": {
+                    "enabled": true,
+                    "min_age": "30 days",
+                    "max_repeats": 3,
+                    "modification_required": true
+                }
+            }
+        },
+        "engagement_automation": {
+            "like_posts": {
+                "enabled": true,
+                "max_per_hour": 20,
+                "relevance_threshold": 0.7,
+                "weekend_enabled": true
+            },
+            "retweet_posts": {
+                "enabled": true,
+                "max_per_day": 10,
+                "must_contain": ["relevant_hashtags", "trusted_sources"],
+                "weekend_enabled": true
+            },
+            "follow_accounts": {
+                "enabled": true,
+                "max_per_day": 50,
+                "criteria": {
+                    "min_followers": 1000,
+                    "engagement_rate": "minimum 1%",
+                    "relevant_content": true
+                },
+                "weekend_enabled": true
+            }
+        }
+    },
+    "content_calendar": {
+        "themes": {
+            "monday": ["productivity", "weekly planning", "motivation"],
+            "tuesday": ["technology", "innovation", "future trends"],
+            "wednesday": ["business growth", "strategy", "marketing"],
+            "thursday": ["leadership", "team management", "culture"],
+            "friday": ["success stories", "weekly wins", "inspiration"]
+        },
+        "post_frequency": {
+            "twitter": {
+                "weekday": 4,
+                "weekend": 4,
+                "optimal_spacing": "3 hours"
+            }
+        },
+        "special_events": {
+            "tech_conferences": "increase relevant hashtags",
+            "product_launches": "engage with announcements",
+            "industry_events": "participate in discussions"
+        }
+    },
+    "engagement_rules": {
+        "response_time": {
+            "comments": "within 2 hours",
+            "messages": "within 4 hours",
+            "mentions": "within 1 hour"
+        },
+        "interaction_types": {
+            "like_relevant_posts": true,
+            "retweet_industry_news": true,
+            "reply_to_mentions": true,
+            "quote_tweets": "when adding value",
+            "thread_creation": "for complex topics"
+        },
+        "engagement_priorities": {
+            "industry_experts": "high",
+            "customers": "high",
+            "news_sources": "medium",
+            "general_audience": "medium"
+        }
+    },
+    "content_guidelines": {
+        "post_length": {
+            "twitter": {
+                "min": 80,
+                "max": 280,
+                "optimal": 240,
+                "thread_max": 5
+            }
+        },
+        "media_usage": {
+            "image_ratio": "60%",
+            "video_ratio": "30%",
+            "text_only": "10%",
+            "image_guidelines": {
+                "preferred_ratio": "16:9",
+                "max_size": "5MB",
+                "formats": ["png", "jpg", "gif"]
+            }
+        },
+        "call_to_action": {
+            "types": [
+                "learn more",
+                "share your thoughts",
+                "follow for more",
+                "join the discussion",
+                "check out the link"
+            ],
+            "frequency": "70% of posts",
+            "placement": "end of post",
+            "style": "natural and engaging"
+        },
+        "content_quality": {
+            "must_have": [
+                "clear value proposition",
+                "relevant to audience",
+                "actionable insights",
+                "proper grammar"
+            ],
+            "avoid": [
+                "clickbait",
+                "controversial topics",
+                "overly promotional",
+                "repetitive content"
+            ]
+        }
+    },
+    "performance_metrics": {
+        "key_indicators": {
+            "engagement_rate": "minimum 2%",
+            "click_through_rate": "minimum 1%",
+            "follower_growth": "5% monthly",
+            "brand_mentions": "10% monthly increase",
+            "sentiment_score": "minimum 0.7"
+        },
+        "monitoring": {
+            "hashtag_performance": {
+                "tracking_period": "weekly",
+                "metrics": [
+                    "engagement_rate",
+                    "reach",
+                    "clicks",
+                    "impressions",
+                    "saves"
+                ],
+                "success_criteria": {
+                    "min_engagement": "2%",
+                    "min_reach": 1000,
+                    "min_clicks": 50
+                }
+            },
+            "expert_mentions": {
+                "tracking_period": "monthly",
+                "metrics": [
+                    "response_rate",
+                    "engagement_boost",
+                    "follower_gain",
+                    "relationship_strength"
+                ],
+                "success_criteria": {
+                    "response_rate": "20%",
+                    "engagement_boost": "50%"
+                }
+            },
+            "news_sources": {
+                "tracking_period": "weekly",
+                "metrics": [
+                    "content_relevance",
+                    "timeliness",
+                    "audience_overlap",
+                    "citation_impact"
+                ],
+                "success_criteria": {
+                    "relevance_score": "0.8",
+                    "freshness": "within 24h"
+                }
+            },
+            "content_performance": {
+                "tracking_period": "daily",
+                "metrics": [
+                    "engagement_by_type",
+                    "time_of_day_performance",
+                    "topic_performance",
+                    "sentiment_analysis"
+                ],
+                "success_criteria": {
+                    "min_engagement": "2%",
+                    "positive_sentiment": "80%"
+                }
+            }
+        },
+        "reporting": {
+            "frequency": "weekly",
+            "key_metrics": [
+                "overall_engagement",
+                "follower_growth",
+                "top_performing_content",
+                "audience_insights"
+            ],
+            "action_items": {
+                "required": true,
+                "based_on": [
+                    "performance_trends",
+                    "audience_feedback",
+                    "market_changes"
+                ]
+            }
+        }
+    }
+}
