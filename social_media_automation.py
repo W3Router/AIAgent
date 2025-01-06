@@ -16,9 +16,13 @@ from jose import jwt
 import base64
 from pathlib import Path
 from content_strategy_manager import ContentStrategyManager
+import logging
 
 # Load environment variables
 load_dotenv()
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 class EmailReviewSystem:
     def __init__(self):
@@ -141,83 +145,22 @@ class SocialMediaAutomation:
     def generate_content(self, platform='twitter', content_type='tips', topic=None):
         """Generate content using OpenAI API"""
         try:
-            content_strategy = self.strategy_manager.strategy['content_strategy']
-            call_to_actions = self.strategy_manager.strategy['content_guidelines']['call_to_action']['types']
+            # Get content strategy
+            prompt = self._create_content_prompt(platform, content_type, topic)
             
-            # Get relevant Twitter handles based on content type
-            twitter_handles = content_strategy.get('twitter_handles', {})
-            news_sources = twitter_handles.get('news_sources', [])
-            industry_experts = twitter_handles.get('industry_experts', [])
+            # Generate content using OpenAI
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "system", "content": prompt}],
+                temperature=0.7,
+                max_tokens=280 if platform == 'twitter' else 1000
+            )
             
-            system_prompt = """You are a social media expert who creates engaging content. 
-            Your posts must be concise, engaging, and ALWAYS include a clear call to action at the end."""
+            return response.choices[0].message.content.strip()
             
-            if content_type == 'news_commentary':
-                system_prompt += """
-                For news commentary:
-                - Reference news from the last 3 days only
-                - Always include a relevant Twitter handle from news sources
-                - Add your unique insight or perspective
-                - Keep it professional and factual"""
-            
-            user_prompt = f"""Generate a {platform} post about {topic if topic else content_type}.
-            
-            Requirements:
-            - Keep it between 100-200 characters
-            - Must end with one of these calls to action: {', '.join(call_to_actions)}
-            - Be engaging and conversational
-            - Do not include hashtags
-            - Focus on providing value
-            - Match this tone: {content_strategy['tone_of_voice']['primary']}
-            """
-            
-            if content_type == 'news_commentary':
-                user_prompt += f"""
-                Additional requirements:
-                - Include one of these news source handles: {', '.join(news_sources)}
-                - Format: Breaking: [news headline] via @[source]. Our take: [insight]
-                - Only reference news from the past 3 days
-                """
-            elif content_type == 'engagement_questions':
-                user_prompt += f"""
-                Additional requirements:
-                - Tag one of these industry experts: {', '.join(industry_experts)}
-                """
-            
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_prompt}
-                        ],
-                        temperature=0.7,
-                        max_tokens=150
-                    )
-                    
-                    content = response.choices[0].message.content.strip()
-                    evaluation = self.strategy_manager.evaluate_content(content, platform)
-                    
-                    if all(evaluation.values()):
-                        return content
-                    else:
-                        print(f"Content evaluation failed on attempt {attempt + 1}: {evaluation}")
-                        if attempt == max_retries - 1:
-                            print("Max retries reached, returning None")
-                            return None
-                        continue
-                        
-                except Exception as e:
-                    print(f"Error in content generation attempt {attempt + 1}: {str(e)}")
-                    if attempt == max_retries - 1:
-                        raise
-                    continue
-                    
         except Exception as e:
-            print(f"Error in generate_content: {str(e)}")
-            return None
+            logger.error(f"Error generating content: {str(e)}")
+            raise
 
     def generate_image(self, content, style="digital art"):
         """Generate an image using OpenAI's DALL-E based on the content"""
@@ -368,8 +311,14 @@ class SocialMediaAutomation:
         conn.commit()
         conn.close()
 
+    def schedule_content(self):
+        """Generate and schedule content for review based on strategy"""
+        # Get current platform from strategy
+
+    # Temporarily removed TweetHunter functionality
+    """
     def analyze_audience(self):
-        """Analyze target audience using TweetHunter"""
+        # Analyze target audience using TweetHunter
         try:
             url = "https://api.tweethunter.io/api/v1/audience/analyze"
             response = requests.post(url, headers={
@@ -380,28 +329,30 @@ class SocialMediaAutomation:
         except Exception as e:
             print(f"Error analyzing audience: {e}")
             return None
+    """
 
-    def schedule_content(self):
-        """Generate and schedule content for review based on strategy"""
-        # Get current platform from strategy
-        platform = 'twitter'  # Can be expanded based on strategy
+    def _create_content_prompt(self, platform, content_type, topic=None):
+        """Create content prompt based on strategy"""
+        if platform == 'twitter':
+            if content_type == 'tips':
+                prompt = f"Write a helpful tip about {topic} in 280 characters or less."
+            elif content_type == 'news':
+                prompt = f"Summarize the latest news about {topic} in 280 characters or less."
+            elif content_type == 'promotions':
+                prompt = f"Create a promotional tweet about {topic} with a clear call-to-action."
+            else:
+                prompt = f"Write a tweet about {topic}."
+        else:
+            if content_type == 'tips':
+                prompt = f"Write a helpful tip about {topic}."
+            elif content_type == 'news':
+                prompt = f"Summarize the latest news about {topic}."
+            elif content_type == 'promotions':
+                prompt = f"Create a promotional post about {topic} with a clear call-to-action."
+            else:
+                prompt = f"Write a post about {topic}."
         
-        content = self.generate_content(platform)
-        if content:
-            # Get next available slot based on content type
-            next_slot = datetime.now().replace(minute=0, second=0, microsecond=0)
-            next_slot = next_slot.strftime('%Y-%m-%d %H:00:00')
-            
-            # Save for review
-            content_id = self.save_content_for_review(content, platform, next_slot)
-            print(f"Content #{content_id} saved and sent for review")
-            
-            # Update performance metrics
-            self.strategy_manager.update_performance_metrics({
-                'engagement_rate': 0.02,  # Example values
-                'click_through_rate': 0.01,
-                'follower_growth': 0.05
-            })
+        return prompt
 
     def trigger_zapier_webhook(self, webhook_type, data):
         """Trigger a Zapier webhook with data"""
