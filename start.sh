@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # 检查发推系统是否已经在运行
-if pgrep -f "python3 posting_system.py" > /dev/null; then
+if pgrep -f "python3 posting_system_final.py" > /dev/null; then
     echo "Posting system is already running"
 else
     # 启动发推系统
-    nohup python3 posting_system.py > twitter_bot.log 2>&1 &
+    nohup python3 posting_system_final.py > twitter_bot.log 2>&1 &
     echo "Posting system started. Check twitter_bot.log for details"
 fi
 

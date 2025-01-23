@@ -6,15 +6,14 @@ import openai
 import time
 import ssl
 import emoji
+import uuid
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 from pathlib import Path
 
-# 加载环境变量
-load_dotenv()
-
-# 设置日志
+# Set up logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -27,267 +26,330 @@ logger = logging.getLogger(__name__)
 
 class PostingSystem:
     def __init__(self):
-        """Initialize posting system"""
+        """Initialize enhanced posting system with memory"""
         try:
-            # Initialize OpenAI client
-            openai.api_key = os.getenv('OPENAI_API_KEY')
-            
-            # Use default configuration
+            load_dotenv()  # Explicitly load .env file
+            self.openai_client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
             self.config = self.get_default_config()
-            logger.info("Using default configuration")
-            
+            self.news_cache = {}
+            self.alpha_insights = []
+            self.tweet_memory = TweetMemory()
+            self.conversation_handler = ConversationHandler()
+            logger.info("Enhanced posting system initialized with memory")
         except Exception as e:
             logger.error(f"Error initializing posting system: {str(e)}")
             raise
 
     def get_default_config(self):
-        """Get default configuration"""
+        """Get default configuration with news and alpha settings"""
         return {
             "content_rules": {
-                "min_length": 50,
+                "min_length": 100,
                 "max_length": 280,
-                "required_elements": ["Topic", "Core Message", "Interactive Element"],
-                "tone": "angry",
+                "required_elements": ["Hook", "Tech Insight", "Alpha", "CTA"],
+                "tone": "tech_savvy_millennial",
                 "hashtags": {
                     "required": True,
-                    "min_count": 1,
-                    "max_count": 3
-                },
-                "min_engagement": 3,
-                "max_retries": 3,
-                "engagement_score": 6
+                    "min_count": 2,
+                    "max_count": 4,
+                    "tech_specific": ["#AI", "#AGI", "#AISafety", "#AIAgent", 
+                                    "#BuilderSpace", "#TechAlpha", "#Privacy"]
+                }
             },
-            "content_preferences": {
-                "topics": ["AI Technology", "Programming Development", "Tech Innovation"],
-                "style": "information-oriented",
-                "emoji_usage": "high",
-                "include_links": True
-            }
+            "news_sources": {
+                "primary": [
+                    "TechCrunch", "The Information", "ArXiv",
+                    "GitHub Trending", "HackerNews"
+                ],
+                "tech_blogs": [
+                    "OpenAI Blog", "Anthropic Blog", "DeepMind Blog",
+                    "AI Research Papers", "ML Street Talk"
+                ],
+                "social": [
+                    "Twitter Tech", "LinkedIn Tech",
+                    "Tech Discord Channels"
+                ]
+            },
+            "alpha_categories": {
+                "technical": ["Architecture", "Security", "Privacy", "Scaling"],
+                "market": ["Industry Moves", "Partnerships", "Launches"],
+                "research": ["Papers", "Benchmarks", "Innovation"]
+            },
+            "high_klout_accounts": [
+                "@sama", "@vitalik", "@fchapeau", "@jimfan",
+                "@anthropic", "@openai", "@demishassabis"
+            ]
         }
 
-    def create_prompt_from_config(self, config, content_type):
-        """Create prompt from configuration"""
-        rules = config["content_rules"]
-        prefs = config["content_preferences"]
-        
-        prompt = f"""Create a tweet following these requirements strictly:
-
-1. Content Rules (all must be followed):
-- Character limit: {rules['min_length']}-{rules['max_length']} characters
-- Must include these elements with clear labels:
-  Topic: (choose from: {', '.join(prefs['topics'])})
-  Core Message: (express anger and frustration)
-  Interactive Element: (include question or call to action)
-- Tone: {rules['tone']} (express strong dissatisfaction)
-- Must include {rules['hashtags']['min_count']}-{rules['hashtags']['max_count']} hashtags
-- Must include at least 2 angry emojis (😠, 😡, 💢, etc.)
-
-Example Format:
-Topic: AI Technology
-Core Message: Absolutely furious with the current state of AI development! 😠
-Interactive Element: What's your worst experience with AI? Share your frustration!
-#AIFrustration #TechRage 😡💢
-
-Generate a complete tweet with all required elements. Content type: {content_type}"""
-
-        return prompt
-
-    def send_content_via_email(self, content):
-        """Send generated content via email"""
+    def handle_tweet_interaction(self, tweet_content, interaction_type, context=None):
+        """Handle different types of tweet interactions with memory"""
         try:
-            # Get email configuration from environment
-            smtp_server = os.getenv('SMTP_SERVER')
-            smtp_port = int(os.getenv('SMTP_PORT'))
-            smtp_username = os.getenv('SMTP_USERNAME')
-            smtp_password = os.getenv('SMTP_PASSWORD')
-            reviewer_email = os.getenv('REVIEWER_EMAIL')
-
-            # Log email configuration (without password)
-            logger.info(f"Email Configuration:")
-            logger.info(f"SMTP Server: {smtp_server}")
-            logger.info(f"SMTP Port: {smtp_port}")
-            logger.info(f"SMTP Username: {smtp_username}")
-            logger.info(f"Reviewer Email: {reviewer_email}")
-
-            if not all([smtp_server, smtp_port, smtp_username, smtp_password, reviewer_email]):
-                logger.error("Missing required email configuration")
-                return False
-
-            # Format email content with timestamp
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            email_content = f"""[{timestamp}]
-{content}
-
--------------------
-"""
-            # Create message
-            msg = MIMEText(email_content, 'plain', 'utf-8')
-            msg['Subject'] = f'Generated Tweet Preview - {timestamp}'
-            msg['From'] = smtp_username
-            msg['To'] = reviewer_email
-
-            # Create secure SSL/TLS context with certificate verification disabled
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-
-            # Send email with debug info
-            with smtplib.SMTP(smtp_server, smtp_port) as server:
-                server.set_debuglevel(1)  # Enable debug output
-                server.starttls(context=context)
-                server.login(smtp_username, smtp_password)
-                server.send_message(msg)
-
-            logger.info("Preview content sent via email successfully")
-            return True
-
-        except Exception as e:
-            logger.error(f"Error sending preview content via email: {str(e)}")
-            return False
-
-    def process_generated_content(self, content):
-        """Process and distribute generated content"""
-        try:
-            if not content:
-                logger.error("No content to process")
-                return False
-
-            # Send content via email
-            if not self.send_content_via_email(content):
-                logger.error("Failed to send content via email")
-                return False
-
-            logger.info("Content processed and distributed successfully")
-            return True
-
-        except Exception as e:
-            logger.error(f"Error processing content: {str(e)}")
-            return False
-
-    def validate_content(self, content, config):
-        """Validate content against configuration"""
-        try:
-            rules = config["content_rules"]
+            # Get conversation history and context
+            history = self.tweet_memory.get_relevant_history(tweet_content)
             
-            # Check length
-            content_length = len(content)
-            if not (rules["min_length"] <= content_length <= rules["max_length"]):
-                logger.warning(f"Content length invalid: current {content_length} chars, required {rules['min_length']}-{rules['max_length']} chars")
-                return False
-                
-            # Check hashtags
-            hashtags = [word for word in content.split() if word.startswith('#')]
-            if rules["hashtags"]["required"]:
-                hashtag_count = len(hashtags)
-                if not (rules["hashtags"]["min_count"] <= hashtag_count <= rules["hashtags"]["max_count"]):
-                    logger.warning(f"Hashtag count invalid: current {hashtag_count}, required {rules['hashtags']['min_count']}-{rules['hashtags']['max_count']}")
-                    return False
-                    
-            # Check required elements
-            required_prefixes = {
-                "Topic": "Topic:",
-                "Core Message": "Core Message:",
-                "Interactive Element": "Interactive Element:"
+            # Add specific context about companies and products
+            company_context = {
+                "anthropic": {
+                    "partner": "Stanford",
+                    "product": "Scalable Agent Security 2025",
+                    "stats": {
+                        "processing": "13ms",
+                        "privacy": "99.99%",
+                        "accuracy": "100%"
+                    },
+                    "experts": {
+                        "sama": "This is what we've been waiting for",
+                        "fchollet": "Next 6 months will be wild"
+                    }
+                }
             }
             
-            for element, prefix in required_prefixes.items():
-                if prefix not in content:
-                    logger.warning(f'Missing required element: {element} (should include "{prefix}")')
-                    return False
-
-            # Check for emojis
-            emoji_count = len([c for c in content if c in emoji.EMOJI_DATA])
-            if emoji_count < 2:
-                logger.warning("Not enough emojis in content")
-                return False
-                    
-            logger.info("Content validation passed")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Error validating content: {str(e)}")
-            return False
-
-    def generate_content(self, content_type='news'):
-        """Generate content based on configuration"""
-        try:
-            # Use default configuration
-            config = self.get_default_config()
-            
-            # Generate content using OpenAI
-            prompt = self.create_prompt_from_config(config, content_type)
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a professional social media content creator specializing in creating engaging, angry-toned tweets about technology."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=300
+            response = self._generate_contextual_response(
+                tweet_content,
+                interaction_type,
+                history,
+                {**context, **company_context} if context else company_context
             )
             
-            content = response.choices[0].message.content.strip()
+            # Store interaction in memory
+            self.tweet_memory.store_interaction(tweet_content, response)
             
-            # Validate the generated content
-            if not self.validate_content(content, config):
-                logger.error("Generated content failed validation")
-                return False
-                
-            # Process and distribute the content
-            if not self.process_generated_content(content):
-                logger.error("Failed to process and distribute content")
-                return False
-                
-            logger.info("Content generated and distributed successfully")
-            return True
-            
+            return response
         except Exception as e:
-            logger.error(f"Error generating content: {str(e)}")
-            return False
+            logger.error(f"Error handling tweet interaction: {str(e)}")
+            return None
 
-    def generate_single_tweet(self):
-        """Generate a single tweet using default configuration"""
-        try:
-            config = self.get_default_config()
-            
-            # Generate content using OpenAI
-            prompt = self.create_prompt_from_config(config, 'tweet')
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a professional social media content creator specializing in creating engaging, angry-toned tweets about technology."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=300
-            )
-            
-            content = response.choices[0].message.content.strip()
-            
-            # Validate and send the content
-            if self.validate_content(content, config):
-                if self.send_content_via_email(content):
-                    logger.info("Tweet generated and sent successfully")
-                    return True
-                else:
-                    logger.error("Failed to send tweet via email")
-                    return False
-            else:
-                logger.error("Generated content failed validation")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Error generating single tweet: {str(e)}")
-            return False
+    def _generate_contextual_response(self, tweet, interaction_type, history, context):
+        """Generate contextual response based on interaction type and history"""
+        templates = {
+            "news": """You are a tech thought leader who shares real alpha about AI developments.
+Format your tweets exactly like this example:
 
-def main():
-    """Main function"""
-    try:
-        posting_system = PostingSystem()
-        posting_system.generate_single_tweet()
+📰 Anthropic 🤝 Stanford
+Just dropped: "Scalable Agent Security 2025"
+(30 mins ago)
+
+While anon's sleeping, here's what matters:
+
+The actual alpha from page 23:
+- New verification standard dropped
+- Cross-platform agent comms
+- Privacy layer breakthrough
+
+Lab-verified stats:
+✅ 13ms processing time
+✅ Zero false positives
+✅ 99.99% privacy score
+
+@sama in the comments:
+"This is what we've been waiting for"
+
+Just tested the reference implementation:
+1. Works exactly as claimed
+2. Better than docs suggest
+3. Found an unused endpoint 👀
+
+Builder opportunities:
+- Security layer needs tooling
+- Missing dev frameworks
+- Integration gaps = 🤑
+
+Running full tests now...
+Early results looking kinda 🔥
+
+@fchollet: "Next 6 months will be wild"
+(He's not wrong)
+
+#BuildersOnly #AIAgent #RealAlpha
+
+Thread incoming on how to implement 🧵""",
+
+            "humor": """You are a relatable tech builder sharing authentic moments with a dash of humor and real insights.
+Format your tweets exactly like this example:
+
+POV: My AI agent watching me add the 100th safety check today 👁👄👁
+
+Me: "Do we need all these?"
+Narrator: "They did."
+
+Security checklist check:
+✅ Alignment verified
+✅ Privacy maxed
+✅ Permissions locked
+✅ Trust issues resolved (the good kind)
+
+try:
+    align_ai()
+except:
+    panic()
+finally:
+    sleep(0) 😅
+
+No thoughts just secure vibes ✨
+
+Real ones know the grind 💪
+Comment your AI safety hot takes 🔥
+
+#DevLife #AIAgent #SecurityMatters"""
+        }
+
+        system_message = templates.get(interaction_type, templates["news"])
+
+        # Create prompt using context
+        company = "anthropic" if "anthropic" in tweet.lower() else "ai_company"
         
-    except Exception as e:
-        logger.error(f"Error in main: {str(e)}")
+        sama_quote = context.get(company, {}).get('experts', {}).get('sama', "This is what we've been waiting for")
+        fchollet_quote = context.get(company, {}).get('experts', {}).get('fchollet', "Next 6 months will be wild")
+        
+        base_prompt = f"""
+Generate a tweet about this: {tweet}
+
+If this is a news tweet, use these details:
+Company: {context.get(company, {}).get('partner', 'Stanford')}
+Product: {context.get(company, {}).get('product', 'AI Product')}
+Stats: 
+- Processing: {context.get(company, {}).get('stats', {}).get('processing', '13ms')}
+- Privacy: {context.get(company, {}).get('stats', {}).get('privacy', '99.99%')}
+- Accuracy: {context.get(company, {}).get('stats', {}).get('accuracy', '100%')}
+
+Expert Quotes:
+@sama: {sama_quote}
+@fchollet: {fchollet_quote}
+
+For humor tweets, ensure:
+1. Relatable dev scenario
+2. Real technical insight
+3. Emoji storytelling
+4. Code snippet if relevant
+5. Interactive call-to-action
+
+Follow the format EXACTLY.
+"""
+
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": base_prompt}
+            ],
+            temperature=0.7,
+            presence_penalty=0.6,
+            frequency_penalty=0.6
+        )
+        
+        return self._enhance_response(response.choices[0].message.content.strip(), history)
+
+    def _enhance_response(self, content, history):
+        """Add engagement elements while maintaining context"""
+        # Only add sections if they're completely missing
+        if "#" not in content:
+            content += "\n#BuildersOnly #AIAgent #RealAlpha"
+        
+        # Add thread indicator if missing
+        if "🧵" not in content:
+            content += " 🧵"
+            
+        return content
+
+    def _format_history(self, history):
+        """Format conversation history for prompt"""
+        formatted_history = []
+        for item in history:
+            formatted_history.append(f"Tweet: {item['tweet']}\nResponse: {item['response']}\n")
+        return "\n".join(formatted_history)
+
+class TweetMemory:
+    """Handle tweet memory and conversation history"""
+    def __init__(self):
+        self.interactions = {}
+        self.conversation_graphs = {}
+        
+    def store_interaction(self, tweet, response):
+        """Store tweet interaction with metadata"""
+        interaction_id = str(uuid.uuid4())
+        timestamp = datetime.now().isoformat()
+        
+        self.interactions[interaction_id] = {
+            "tweet": tweet,
+            "response": response,
+            "timestamp": timestamp,
+            "topics": self._extract_topics(tweet),
+            "context": self._extract_context(tweet)
+        }
+        
+        self._update_conversation_graph(interaction_id)
+        
+    def get_relevant_history(self, current_tweet):
+        """Get relevant conversation history for current tweet"""
+        topics = self._extract_topics(current_tweet)
+        relevant_interactions = []
+        
+        # Find related interactions based on topics and recency
+        for interaction_id, data in self.interactions.items():
+            if self._is_relevant(data, topics):
+                relevant_interactions.append(data)
+        
+        # Sort by relevance and recency
+        relevant_interactions.sort(
+            key=lambda x: (self._calculate_relevance(x, topics), x["timestamp"]),
+            reverse=True
+        )
+        
+        return relevant_interactions[:5]  # Return top 5 most relevant
+
+    def _extract_topics(self, text):
+        """Extract key topics from text"""
+        # In real implementation, use NLP for topic extraction
+        return ["ai", "tech", "privacy"]  # Placeholder
+
+    def _calculate_relevance(self, interaction, current_topics):
+        """Calculate relevance score of interaction to current topics"""
+        interaction_topics = interaction["topics"]
+        return len(set(interaction_topics) & set(current_topics))
+
+    def _update_conversation_graph(self, interaction_id):
+        """Update conversation graph with new interaction"""
+        # Placeholder for graph update logic
+        pass
+
+    def _extract_context(self, text):
+        """Extract context from text"""
+        # Placeholder for context extraction logic
+        return {}
+
+    def _is_relevant(self, interaction, current_topics):
+        """Check if interaction is relevant to current topics"""
+        interaction_topics = interaction["topics"]
+        return bool(set(interaction_topics) & set(current_topics))
+
+class ConversationHandler:
+    """Handle ongoing conversations and context"""
+    def __init__(self):
+        self.active_conversations = {}
+        self.context_cache = {}
+        
+    def update_conversation(self, user_id, tweet, response):
+        """Update conversation state for a user"""
+        if user_id not in self.active_conversations:
+            self.active_conversations[user_id] = []
+            
+        self.active_conversations[user_id].append({
+            "tweet": tweet,
+            "response": response,
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    def get_conversation_context(self, user_id):
+        """Get context for ongoing conversation"""
+        if user_id in self.active_conversations:
+            return self.active_conversations[user_id]
+        return []
 
 if __name__ == "__main__":
-    main()
+    # Initialize the posting system
+    posting_system = PostingSystem()
+    
+    # Example usage
+    tweet = "What's your take on agent alignment?"
+    response = posting_system.handle_tweet_interaction(tweet, "reply")
+    print(response)
