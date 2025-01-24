@@ -1,10 +1,10 @@
 import os
-import json
+import tweepy
 import logging
-import time
 from datetime import datetime
+import schedule
+import time
 from dotenv import load_dotenv
-from pathlib import Path
 from real_crypto_news import CryptoNewsAggregator, generate_tweet
 
 # Set up logging
@@ -12,7 +12,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("ai_posts.log"),
+        logging.FileHandler("logs/ai_posts.log"),
         logging.StreamHandler()
     ]
 )
@@ -25,7 +25,7 @@ class AIPostingSystem:
             load_dotenv()
             self.news_aggregator = CryptoNewsAggregator()
             self.last_post_date = None
-            self.posting_hour = 10  # Post at 10 AM every day
+            self.posting_hour = 12  # Post at 12 PM every day
             logger.info("AI posting system initialized")
         except Exception as e:
             logger.error(f"Error initializing AI posting system: {str(e)}")
@@ -75,7 +75,8 @@ class AIPostingSystem:
         tweet = self.generate_post()
         if tweet:
             try:
-                # Here you would add your actual posting logic
+                client = setup_twitter_client()
+                response = client.create_tweet(text=tweet)
                 logger.info(f"Posting tweet: {tweet}")
                 
                 self.last_post_date = datetime.now().date()
@@ -96,9 +97,42 @@ class AIPostingSystem:
         else:
             return self.make_post()
 
-if __name__ == "__main__":
-    # Initialize and run the posting system
-    posting_system = AIPostingSystem()
+def setup_twitter_client():
+    """初始化 Twitter API v2 客户端"""
+    consumer_key = os.getenv('TWITTER_CONSUMER_KEY')
+    consumer_secret = os.getenv('TWITTER_CONSUMER_SECRET')
+    access_token = os.getenv('TWITTER_ACCESS_TOKEN')
+    access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
     
-    # Run continuously by default
-    posting_system.run(continuous=True)
+    client = tweepy.Client(
+        consumer_key=consumer_key,
+        consumer_secret=consumer_secret,
+        access_token=access_token,
+        access_token_secret=access_token_secret
+    )
+    return client
+
+def main():
+    try:
+        # Initialize and run the posting system
+        posting_system = AIPostingSystem()
+        
+        # Set up schedule to post at 12 PM every day
+        schedule.every().day.at("12:00").do(posting_system.make_post)
+        
+        logger.info("系统已启动，将在每天中午12:00发送推文...")
+        print("系统已启动，将在每天中午12:00发送推文...")
+        
+        while True:
+            try:
+                schedule.run_pending()
+                time.sleep(60)  # Check every minute
+            except Exception as e:
+                logger.error(f"运行时错误: {str(e)}")
+                time.sleep(60)  # 发生错误后等待一分钟再继续
+    except Exception as e:
+        logger.error(f"系统启动失败: {str(e)}")
+        raise
+
+if __name__ == "__main__":
+    main()

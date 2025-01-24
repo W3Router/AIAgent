@@ -7,3 +7,5 @@ datetime>=5.2
 requests>=2.31.0
 pycoingecko>=3.1.0
 cryptocompare>=0.7.5
+schedule
+pytz
