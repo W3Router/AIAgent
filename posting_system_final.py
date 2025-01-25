@@ -10,7 +10,8 @@ from real_crypto_news import CryptoNewsAggregator, generate_tweet
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format='%(asctime)s.%(msecs)03d - [%(filename)s:%(lineno)d] - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
     handlers=[
         logging.FileHandler("logs/ai_posts.log"),
         logging.StreamHandler()
@@ -23,29 +24,65 @@ class AIPostingSystem:
         """Initialize AI posting system"""
         try:
             load_dotenv()
+            logger.info("环境变量加载完成")
+            
             self.news_aggregator = CryptoNewsAggregator()
+            logger.info("新闻聚合器初始化完成")
+            
             self.last_post_date = None
-            self.posting_hour = 12  # Post at 12 PM every day
-            logger.info("AI posting system initialized")
+            self.posting_hour = 22  # 晚上10点
+            self.posting_minute = 30  # 30分
+            
+            # 初始化 Twitter 客户端
+            try:
+                consumer_key = os.getenv('TWITTER_CONSUMER_KEY')
+                consumer_secret = os.getenv('TWITTER_CONSUMER_SECRET')
+                access_token = os.getenv('TWITTER_ACCESS_TOKEN')
+                access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+                
+                logger.info("正在初始化 Twitter API...")
+                logger.info(f"使用的 tweepy 版本: {tweepy.__version__}")
+                logger.info("检查环境变量:")
+                logger.info(f"consumer_key 存在: {'是' if consumer_key else '否'}")
+                logger.info(f"consumer_secret 存在: {'是' if consumer_secret else '否'}")
+                logger.info(f"access_token 存在: {'是' if access_token else '否'}")
+                logger.info(f"access_token_secret 存在: {'是' if access_token_secret else '否'}")
+                
+                # 使用基本参数初始化客户端
+                self.client = tweepy.Client(
+                    consumer_key=consumer_key,
+                    consumer_secret=consumer_secret,
+                    access_token=access_token,
+                    access_token_secret=access_token_secret
+                )
+                logger.info("Twitter API 初始化成功")
+            except Exception as e:
+                logger.error(f"Twitter API 初始化失败: {str(e)}")
+                logger.error(f"错误类型: {type(e).__name__}")
+                logger.error(f"错误详情: {e.__dict__ if hasattr(e, '__dict__') else '无详情'}")
+                self.client = None
+            
+            logger.info("AI 发推系统初始化完成")
         except Exception as e:
-            logger.error(f"Error initializing AI posting system: {str(e)}")
+            logger.error(f"系统初始化失败: {str(e)}")
             raise
 
     def should_post(self):
-        """Check if we should make a new post based on timing"""
+        """检查是否应该发送推文"""
         current_time = datetime.now()
         current_date = current_time.date()
-
-        # Don't post if we've already posted today
+        current_hour = current_time.hour
+        current_minute = current_time.minute
+        
+        # 检查是否是指定的发送时间
+        if current_hour != self.posting_hour or current_minute != self.posting_minute:
+            return False
+        
+        # 检查今天是否已经发送过
         if self.last_post_date == current_date:
-            logger.info("Already posted today")
+            logger.info(f"今天已经发送过推文了 (上次发送时间: {self.last_post_date})")
             return False
-
-        # Only post at the specified hour
-        if current_time.hour != self.posting_hour:
-            logger.info(f"Not posting hour (current: {current_time.hour}, target: {self.posting_hour})")
-            return False
-
+        
         return True
 
     def generate_post(self):
@@ -74,64 +111,59 @@ class AIPostingSystem:
 
         tweet = self.generate_post()
         if tweet:
-            try:
-                client = setup_twitter_client()
-                response = client.create_tweet(text=tweet)
-                logger.info(f"Posting tweet: {tweet}")
-                
-                self.last_post_date = datetime.now().date()
-                return tweet
-            except Exception as e:
-                logger.error(f"Error posting tweet: {str(e)}")
-                return None
+            max_retries = 3
+            attempt_count = 0
+            
+            while attempt_count < max_retries:
+                try:
+                    if self.client is None:
+                        logger.error("Twitter client not initialized")
+                        attempt_count += 1
+                        continue
+                        
+                    response = self.client.create_tweet(text=tweet)
+                    logger.info(f"Successfully posted tweet: {tweet}")
+                    
+                    self.last_post_date = datetime.now().date()
+                    return tweet
+                    
+                except Exception as e:
+                    attempt_count += 1
+                    logger.error(f"Failed to post tweet (attempt {attempt_count}): {str(e)}")
+                    
+                    if attempt_count < max_retries:
+                        wait_time = 60 * attempt_count
+                        logger.info(f"Waiting {wait_time} seconds before retry...")
+                        time.sleep(wait_time)
+                    else:
+                        logger.error("Maximum retry attempts reached, posting failed")
+                        return None
         return None
-
-    def run(self, continuous=True, interval=300):
-        """Run the posting system either once or continuously"""
-        logger.info(f"Starting AI posting system (posting at {self.posting_hour}:00 daily)")
-        
-        if continuous:
-            while True:
-                self.make_post()
-                time.sleep(interval)  # Check every 5 minutes
-        else:
-            return self.make_post()
-
-def setup_twitter_client():
-    """初始化 Twitter API v2 客户端"""
-    consumer_key = os.getenv('TWITTER_CONSUMER_KEY')
-    consumer_secret = os.getenv('TWITTER_CONSUMER_SECRET')
-    access_token = os.getenv('TWITTER_ACCESS_TOKEN')
-    access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
-    
-    client = tweepy.Client(
-        consumer_key=consumer_key,
-        consumer_secret=consumer_secret,
-        access_token=access_token,
-        access_token_secret=access_token_secret
-    )
-    return client
 
 def main():
     try:
         # Initialize and run the posting system
         posting_system = AIPostingSystem()
         
-        # Set up schedule to post at 12 PM every day
-        schedule.every().day.at("12:00").do(posting_system.make_post)
+        # Schedule posts for 10:30 PM daily
+        schedule.every().day.at("22:30").do(posting_system.make_post)
         
-        logger.info("系统已启动，将在每天中午12:00发送推文...")
-        print("系统已启动，将在每天中午12:00发送推文...")
+        # Display next run time
+        next_run = schedule.next_run()
+        logger.info(f"System started, scheduled to post at 22:30 daily")
+        logger.info(f"Next post scheduled for: {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"System started, scheduled to post at 22:30 daily")
+        print(f"Next post scheduled for: {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
         
         while True:
             try:
                 schedule.run_pending()
                 time.sleep(60)  # Check every minute
             except Exception as e:
-                logger.error(f"运行时错误: {str(e)}")
-                time.sleep(60)  # 发生错误后等待一分钟再继续
+                logger.error(f"Runtime error: {str(e)}")
+                time.sleep(60)
     except Exception as e:
-        logger.error(f"系统启动失败: {str(e)}")
+        logger.error(f"System startup failed: {str(e)}")
         raise
 
 if __name__ == "__main__":

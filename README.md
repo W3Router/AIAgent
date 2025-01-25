@@ -30,7 +30,10 @@ OPENAI_API_KEY=your_api_key_here
 
 3. Run the system:
 ```bash
-python posting_system_v3.py
+pkill -f "python3 posting_system_final.py"
+rm -rf logs/
+./start.sh
+tail -f logs/twitter_bot.log
 ```
 
 ## Components
