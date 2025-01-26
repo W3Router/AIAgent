@@ -11,10 +11,11 @@ import pytz
 import re
 
 class CryptoNewsAggregator:
-    def __init__(self):
+    def __init__(self, http_session=None):
         load_dotenv()
         self.coingecko = CoinGeckoAPI()
         self.api_key = os.getenv('CRYPTOCOMPARE_API_KEY')
+        self.http_session = http_session or requests.Session()
         self.ai_keywords = [
             'artificial intelligence', 'machine learning', 'neural network',
             'autonomous agent', 'agentic ai', 'llm', 'language model',
@@ -49,7 +50,7 @@ class CryptoNewsAggregator:
         try:
             url = "https://min-api.cryptocompare.com/data/v2/news/?lang=EN&categories=AI|Technology|Trading"
             headers = {'authorization': f'Apikey {self.api_key}'}
-            response = requests.get(url, headers=headers)
+            response = self.http_session.get(url, headers=headers, verify=False, timeout=30)
             news_data = response.json()
             
             if 'Data' in news_data and news_data['Data']:

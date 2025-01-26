@@ -6,6 +6,24 @@ import schedule
 import time
 from dotenv import load_dotenv
 from real_crypto_news import CryptoNewsAggregator, generate_tweet
+import urllib3
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+# 配置 requests 的重试策略
+retry_strategy = Retry(
+    total=5,
+    backoff_factor=1,
+    status_forcelist=[429, 500, 502, 503, 504],
+)
+adapter = HTTPAdapter(max_retries=retry_strategy)
+http = requests.Session()
+http.mount("https://", adapter)
+http.mount("http://", adapter)
+
+# Disable SSL warnings
+urllib3.disable_warnings()
 
 # Set up logging
 logging.basicConfig(
@@ -24,63 +42,58 @@ class AIPostingSystem:
         """Initialize AI posting system"""
         try:
             load_dotenv()
-            logger.info("环境变量加载完成")
+            logger.info("Environment variables loaded")
             
-            self.news_aggregator = CryptoNewsAggregator()
-            logger.info("新闻聚合器初始化完成")
+            self.news_aggregator = CryptoNewsAggregator(http_session=http)
+            logger.info("News aggregator initialized")
             
             self.last_post_date = None
-            self.posting_hour = 22  # 晚上10点
-            self.posting_minute = 30  # 30分
+            self.posting_hour = 19  # 7:00 PM
+            self.posting_minute = 0  # 00 minutes
             
-            # 初始化 Twitter 客户端
+            # Initialize Twitter client
             try:
                 consumer_key = os.getenv('TWITTER_CONSUMER_KEY')
                 consumer_secret = os.getenv('TWITTER_CONSUMER_SECRET')
                 access_token = os.getenv('TWITTER_ACCESS_TOKEN')
                 access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
                 
-                logger.info("正在初始化 Twitter API...")
-                logger.info(f"使用的 tweepy 版本: {tweepy.__version__}")
-                logger.info("检查环境变量:")
-                logger.info(f"consumer_key 存在: {'是' if consumer_key else '否'}")
-                logger.info(f"consumer_secret 存在: {'是' if consumer_secret else '否'}")
-                logger.info(f"access_token 存在: {'是' if access_token else '否'}")
-                logger.info(f"access_token_secret 存在: {'是' if access_token_secret else '否'}")
+                logger.info("Initializing Twitter API...")
+                logger.info(f"Using tweepy version: {tweepy.__version__}")
+                logger.info("Checking environment variables:")
+                logger.info(f"consumer_key exists: {'yes' if consumer_key else 'no'}")
+                logger.info(f"consumer_secret exists: {'yes' if consumer_secret else 'no'}")
+                logger.info(f"access_token exists: {'yes' if access_token else 'no'}")
+                logger.info(f"access_token_secret exists: {'yes' if access_token_secret else 'no'}")
                 
-                # 使用基本参数初始化客户端
+                # Initialize client with basic parameters
                 self.client = tweepy.Client(
                     consumer_key=consumer_key,
                     consumer_secret=consumer_secret,
                     access_token=access_token,
-                    access_token_secret=access_token_secret
+                    access_token_secret=access_token_secret,
+                    wait_on_rate_limit=True
                 )
-                logger.info("Twitter API 初始化成功")
+                logger.info("Twitter API initialized successfully")
             except Exception as e:
-                logger.error(f"Twitter API 初始化失败: {str(e)}")
-                logger.error(f"错误类型: {type(e).__name__}")
-                logger.error(f"错误详情: {e.__dict__ if hasattr(e, '__dict__') else '无详情'}")
+                logger.error(f"Failed to initialize Twitter API: {str(e)}")
+                logger.error(f"Error type: {type(e).__name__}")
+                logger.error(f"Error details: {e.__dict__ if hasattr(e, '__dict__') else 'No details'}")
                 self.client = None
             
-            logger.info("AI 发推系统初始化完成")
+            logger.info("AI posting system initialization complete")
         except Exception as e:
-            logger.error(f"系统初始化失败: {str(e)}")
+            logger.error(f"System initialization failed: {str(e)}")
             raise
 
     def should_post(self):
-        """检查是否应该发送推文"""
+        """Check if it's time to post"""
         current_time = datetime.now()
         current_date = current_time.date()
-        current_hour = current_time.hour
-        current_minute = current_time.minute
         
-        # 检查是否是指定的发送时间
-        if current_hour != self.posting_hour or current_minute != self.posting_minute:
-            return False
-        
-        # 检查今天是否已经发送过
+        # Only check if we've already posted today
         if self.last_post_date == current_date:
-            logger.info(f"今天已经发送过推文了 (上次发送时间: {self.last_post_date})")
+            logger.info(f"Already posted today (last post: {self.last_post_date})")
             return False
         
         return True
@@ -145,14 +158,17 @@ def main():
         # Initialize and run the posting system
         posting_system = AIPostingSystem()
         
-        # Schedule posts for 10:30 PM daily
-        schedule.every().day.at("22:30").do(posting_system.make_post)
+        # Get posting time
+        post_time = f"{posting_system.posting_hour:02d}:{posting_system.posting_minute:02d}"
+        
+        # Schedule posts
+        schedule.every().day.at(post_time).do(posting_system.make_post)
         
         # Display next run time
         next_run = schedule.next_run()
-        logger.info(f"System started, scheduled to post at 22:30 daily")
+        logger.info(f"System started, scheduled to post daily at {post_time}")
         logger.info(f"Next post scheduled for: {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"System started, scheduled to post at 22:30 daily")
+        print(f"System started, scheduled to post daily at {post_time}")
         print(f"Next post scheduled for: {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
         
         while True:
