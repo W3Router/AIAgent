@@ -39,12 +39,10 @@ class TwitterEngagementSystem:
         """设置Twitter API"""
         try:
             self.client = tweepy.Client(
-                bearer_token=os.getenv("TWITTER_BEARER_TOKEN"),
-                consumer_key=os.getenv("TWITTER_API_KEY"),
-                consumer_secret=os.getenv("TWITTER_API_SECRET"),
-                access_token=os.getenv("TWITTER_ACCESS_TOKEN"),
-                access_token_secret=os.getenv("TWITTER_ACCESS_TOKEN_SECRET"),
-                wait_on_rate_limit=True
+                consumer_key=os.getenv('TWITTER_CONSUMER_KEY'),
+                consumer_secret=os.getenv('TWITTER_CONSUMER_SECRET'),
+                access_token=os.getenv('TWITTER_ACCESS_TOKEN'),
+                access_token_secret=os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
             )
             logger.info("Successfully connected to Twitter API")
         except Exception as e:

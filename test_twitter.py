@@ -12,17 +12,16 @@ def test_twitter_api():
     print("Starting Twitter API test...\n")
     
     # Get credentials from environment variables
-    api_key = os.getenv('TWITTER_API_KEY')
-    api_secret = os.getenv('TWITTER_API_SECRET')
+    consumer_key = os.getenv('TWITTER_CONSUMER_KEY')
+    consumer_secret = os.getenv('TWITTER_CONSUMER_SECRET')
     access_token = os.getenv('TWITTER_ACCESS_TOKEN')
     access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
-    bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
 
     print("Credentials loaded from .env file")
     
     try:
         # Test OAuth 1.0a Authentication
-        auth = tweepy.OAuthHandler(api_key, api_secret)
+        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
         auth.set_access_token(access_token, access_token_secret)
         api = tweepy.API(auth)
         
@@ -30,16 +29,17 @@ def test_twitter_api():
         user = api.verify_credentials()
         print(f"Successfully authenticated as: @{user.screen_name}")
         
-        # Test OAuth 2.0 (Bearer Token) Authentication
-        print("\nTesting Bearer Token authentication...")
-        client = tweepy.Client(bearer_token=bearer_token,
-                             consumer_key=api_key,
-                             consumer_secret=api_secret,
-                             access_token=access_token,
-                             access_token_secret=access_token_secret)
+        # Test OAuth 2.0 Authentication
+        print("\nTesting OAuth 2.0 authentication...")
+        client = tweepy.Client(
+            consumer_key=consumer_key,
+            consumer_secret=consumer_secret,
+            access_token=access_token,
+            access_token_secret=access_token_secret
+        )
         
         me = client.get_me()
-        print(f"Successfully retrieved user data using Bearer Token")
+        print(f"Successfully retrieved user data")
         print(f"User ID: {me.data.id}")
         print(f"Username: @{me.data.username}")
         print(f"Name: {me.data.name}")
