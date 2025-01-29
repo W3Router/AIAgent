@@ -1,5 +1,7 @@
 # Environment variables
 .env
+.env.local
+.env.*.local
 
 # Python
 __pycache__/
@@ -7,30 +9,15 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Database
-*.db
-data/
+venv/
+ENV/
 
 # Logs
 *.log
 logs/
+twitter_bot.log
+engagement.log
+ai_posts.log
 
 # IDE
 .idea/
@@ -38,9 +25,15 @@ logs/
 *.swp
 *.swo
 
-# Docker
-.docker/
-
-# System
+# OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
+# Database
+*.db
+content.db
