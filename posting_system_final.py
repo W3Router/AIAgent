@@ -13,7 +13,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-# 配置 requests 的重试策略
+# Configure requests retry strategy
 retry_strategy = Retry(
     total=5,
     backoff_factor=1,
@@ -27,10 +27,10 @@ http.mount("http://", adapter)
 # Disable SSL warnings
 urllib3.disable_warnings()
 
-# 确保日志目录存在
+# Ensure logs directory exists
 os.makedirs('logs', exist_ok=True)
 
-# 设置日志轮转
+# Configure rotating log handler
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s.%(msecs)03d - [%(filename)s:%(lineno)d] - %(levelname)s - %(message)s',
@@ -39,7 +39,7 @@ logging.basicConfig(
         RotatingFileHandler(
             "logs/twitter_bot.log",
             maxBytes=1024*1024,  # 1MB
-            backupCount=5  # 保留5个备份文件
+            backupCount=5  # Keep 5 backup files
         ),
         logging.StreamHandler()
     ]
@@ -49,9 +49,9 @@ logger = logging.getLogger(__name__)
 class HealthCheck:
     def __init__(self):
         self.last_successful_operation = datetime.now()
-        self.max_inactive_time = timedelta(hours=6)  # 6小时无活动则重启
+        self.max_inactive_time = timedelta(hours=6)  # Restart after 6 hours of inactivity
         self.consecutive_errors = 0
-        self.max_consecutive_errors = 5  # 连续5次错误则重启
+        self.max_consecutive_errors = 5  # Restart after 5 consecutive errors
 
     def update_success(self):
         self.last_successful_operation = datetime.now()
@@ -74,29 +74,39 @@ class AIPostingSystem:
             load_dotenv()
             logger.info("Environment variables loaded")
             
-            # 初始化带有重试机制的新闻聚合器
+            # Initialize news aggregator with retry mechanism
             self.news_aggregator = CryptoNewsAggregator(http_session=http)
             logger.info("News aggregator initialized with retry mechanism")
             
-            self.posting_hour = 19  # 设置固定发送时间为19:00
-            self.posting_minute = 0
+            self.posting_hour = 19  # Set posting time to 19:00 (7 PM)
+            self.posting_window_minutes = 5  # Post within first 5 minutes of the hour
+            self.max_retries = 3
+            self.retry_delay = 30  # seconds
             self.last_post_date = None
+            self.initialize_twitter_api()
+            logging.info(f"AI posting system initialized - Will post at {self.posting_hour:02d}:00")
             
-            # 初始化 Twitter 客户端
+        except Exception as e:
+            logger.error(f"System initialization failed: {str(e)}")
+            raise
+
+    def initialize_twitter_api(self):
+        try:
+            # Initialize Twitter client
             try:
-                consumer_key = os.getenv('TWITTER_CONSUMER_KEY')
-                consumer_secret = os.getenv('TWITTER_CONSUMER_SECRET')
+                consumer_key = os.getenv('TWITTER_API_KEY')
+                consumer_secret = os.getenv('TWITTER_API_SECRET')
                 access_token = os.getenv('TWITTER_ACCESS_TOKEN')
                 access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
                 
                 logger.info("Initializing Twitter API...")
                 logger.info(f"Using tweepy version: {tweepy.__version__}")
                 
-                # 检查环境变量
+                # Check environment variables
                 if not all([consumer_key, consumer_secret, access_token, access_token_secret]):
                     raise ValueError("Missing Twitter API credentials")
                 
-                # 初始化新版本的 Twitter 客户端
+                # Initialize Twitter client with new version
                 self.client = tweepy.Client(
                     consumer_key=consumer_key,
                     consumer_secret=consumer_secret,
@@ -112,51 +122,104 @@ class AIPostingSystem:
                 raise
             
             self.setup_signal_handlers()
-            logger.info(f"AI posting system initialized - Will post daily at {self.posting_hour:02d}:{self.posting_minute:02d}")
             self.health_check.update_success()
             
         except Exception as e:
-            logger.error(f"System initialization failed: {str(e)}")
+            logger.error(f"Failed to initialize Twitter API: {str(e)}")
             raise
 
     def setup_signal_handlers(self):
-        """设置信号处理器以优雅地处理终止信号"""
+        """Set up signal handlers for graceful termination"""
         signal.signal(signal.SIGTERM, self.handle_termination)
         signal.signal(signal.SIGINT, self.handle_termination)
 
     def handle_termination(self, signum, frame):
-        """优雅地处理终止信号"""
+        """Handle termination signals gracefully"""
         logger.info("Received termination signal. Cleaning up...")
         sys.exit(0)
 
     def restart_system(self):
-        """重启系统"""
+        """Restart the system"""
         logger.warning("Initiating system restart...")
         python = sys.executable
         os.execl(python, python, *sys.argv)
 
     def should_post_now(self):
-        """检查是否应该发送推文"""
+        """Check if it's time to post"""
         current_time = datetime.now()
         
-        # 检查是否已经在今天发送过
+        # Check if already posted today
         if self.last_post_date == current_time.date():
             logger.debug("Already posted today")
             return False
         
-        # 检查是否在发送时间窗口内（19:00-19:05）
-        should_post = (current_time.hour == self.posting_hour and 
-                      0 <= current_time.minute < 5)
+        # Check if within posting window (within 2 minutes of target time)
+        target_datetime = current_time.replace(
+            hour=self.posting_hour,
+            minute=0,
+            second=0,
+            microsecond=0
+        )
+        time_diff = abs((current_time - target_datetime).total_seconds() / 60)
+        should_post = time_diff <= self.posting_window_minutes  # Within 5 minutes of target time
         
         if should_post:
             logger.info(f"Posting window active - Current time: {current_time.strftime('%H:%M:%S')}")
         else:
-            logger.debug(f"Outside posting window - Current time: {current_time.strftime('%H:%M:%S')}")
+            logger.debug(f"Outside posting window - Current time: {current_time.strftime('%H:%M:%S')}, Target: {target_datetime.strftime('%H:%M:%S')}")
         
         return should_post
 
+    def generate_post(self):
+        """Generate a new AI-focused crypto post"""
+        try:
+            retry_count = 0
+            
+            while retry_count < self.max_retries:
+                try:
+                    logger.info(f"Attempt {retry_count + 1}/{self.max_retries} to generate post")
+                    # Get latest news and trending coins
+                    news = self.news_aggregator.get_latest_news()
+                    trending = self.news_aggregator.get_trending_ai_coins()
+
+                    if news:
+                        # Generate tweet with our meme format
+                        tweet = generate_tweet(news[0], trending, self.news_aggregator)
+                        logger.info("Successfully generated news-based content")
+                        return tweet
+                    else:
+                        logger.warning("No new AI crypto news found")
+                        retry_count += 1
+                        if retry_count < self.max_retries:
+                            logger.info(f"Waiting {self.retry_delay} seconds before retry...")
+                            time.sleep(self.retry_delay)
+                        continue
+
+                except ConnectionError as ce:
+                    logger.warning(f"Connection error on attempt {retry_count + 1}: {str(ce)}")
+                    retry_count += 1
+                    if retry_count < self.max_retries:
+                        logger.info(f"Waiting {self.retry_delay} seconds before retry...")
+                        time.sleep(self.retry_delay)
+                    continue
+                except Exception as e:
+                    logger.error(f"Unexpected error on attempt {retry_count + 1}: {str(e)}")
+                    retry_count += 1
+                    if retry_count < self.max_retries:
+                        logger.info(f"Waiting {self.retry_delay} seconds before retry...")
+                        time.sleep(self.retry_delay)
+                    continue
+
+            # If all retries failed, return None
+            logger.warning("All attempts to fetch news failed")
+            return None
+
+        except Exception as e:
+            logger.error(f"Critical error in generate_post: {str(e)}")
+            return None
+
     def post_to_twitter(self, tweet_content):
-        """发送推文到 Twitter"""
+        """Post tweet to Twitter"""
         try:
             if not self.client:
                 raise Exception("Twitter client not initialized")
@@ -203,14 +266,14 @@ class AIPostingSystem:
 
     def run(self, continuous=True, interval=60):
         """Run the posting system either once or continuously"""
-        logger.info(f"Starting AI posting system - Will post daily at {self.posting_hour:02d}:{self.posting_minute:02d}")
+        logger.info(f"Starting AI posting system - Will post at {self.posting_hour:02d}:00")
         
         if continuous:
             while True:
                 try:
                     self.make_post()
                     
-                    # 检查是否需要重启
+                    # Check if restart is needed
                     if self.health_check.should_restart():
                         logger.warning("Health check triggered restart")
                         self.restart_system()
@@ -226,7 +289,7 @@ class AIPostingSystem:
 
 if __name__ == "__main__":
     try:
-        # 初始化并运行发帖系统
+        # Initialize and run the posting system
         posting_system = AIPostingSystem()
         posting_system.run(continuous=True)
     except Exception as e:
